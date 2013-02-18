@@ -2,7 +2,6 @@
 <p>Easily look at your <a href='./targets'>target nodes</a></p>
 
 <p>Download course <a href='./slides'>slides</a></p>
-<% end -%>
 <ul>
 <% if nil # @target_list.sort.each do |target| -%>
 <li><a href='http://<%="#{target}.#{node['virtualization']['domain']}:9021"%>'><%="#{target}.#{node['virtualization']['domain']}"%></a></li>
@@ -13,6 +12,7 @@
 <li><a href='http://<%="#{workstation}.#{node['virtualization']['domain']}:12345/index.html?password=opscode"%>'><%="#{workstation}.#{node['virtualization']['domain']}"%></a></li>
 <% end -%>
 </ul>
+<% end -%>
 <% @index_data.each do |i| -%>
 <%= i %>
 <% end -%>

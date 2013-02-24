@@ -82,6 +82,9 @@ node['fileserver']['sublime'].each do |os, data|
 
 end
 
+cc = search('chef',"*:*")
+node.normal['chef_client']['version']=cc.map{|v| v['version']}.flatten.uniq.sort.last
+
 search('chef',"version:#{node['chef_client']['version']}").each do |c|
   oses = c['os'].map do |os,versions|
     "#{os} #{versions.join(', ')}"

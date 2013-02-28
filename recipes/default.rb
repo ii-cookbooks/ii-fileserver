@@ -73,11 +73,20 @@ node['fileserver']['sublime'].each do |os, data|
 
   index_data << "<br /><a href=\"#{data['filename']}\">Sublime for #{os.capitalize}</a>"
 
-  remote_file File.join(node['fileserver']['docroot'], data['filename']) do
+  cache_file = File.join(Chef::Config[:file_cache_path], data['filename'])
+  target_file = File.join(node['fileserver']['docroot'], data['filename'])
+  # Populate the cache
+  rm = remote_file cache_file do
     source data['url']
     checksum data['checksum']
+  end
+  rm.run_action :create
+
+  file target_file do
+    content open(cache_file).read
     owner node['apache']['user']
     mode 00644
+    not_if {::File.exists? target_file }
   end
 
 end
@@ -90,11 +99,21 @@ search('chef',"version:#{node['chef_client']['version']}").each do |c|
     "#{os} #{versions.join(', ')}"
   end.join('; ')
   index_data << "<br /><a href=\"#{c['filename']}\">Chef Full Stack for #{oses}</a>"
-  remote_file File.join(node['fileserver']['docroot'], c['filename']) do
+
+  cache_file = File.join(Chef::Config[:file_cache_path], c['filename'])
+  target_file = File.join(node['fileserver']['docroot'], c['filename'])
+  # Populate the cache
+  rm = remote_file cache_file do
     source c['source']
     checksum c['checksum']
+  end
+  rm.run_action :create
+
+  file target_file do
+    content open(cache_file).read
     owner node['apache']['user']
     mode 00644
+    not_if {::File.exists? target_file }
   end
 end
 

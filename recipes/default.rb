@@ -103,6 +103,7 @@ search('chef',"version:#{node['chef_client']['version']}").each do |c|
   cache_file = File.join(Chef::Config[:file_cache_path], c['filename'])
   target_file = File.join(node['fileserver']['docroot'], c['filename'])
   # Populate the cache
+  # may already be cached to to ii-fileserver::cache-files
   rm = remote_file cache_file do
     source c['source']
     checksum c['checksum']
@@ -117,22 +118,27 @@ search('chef',"version:#{node['chef_client']['version']}").each do |c|
   end
 end
 
-index_data << "<br /><a href=\"cotvnc.dmg\">VNC Client for OSX</a>"
+node['fileserver']['vnc'].each do |os,remote_source|
+  index_data << "<br /><a href=\"cotvnc.dmg\">VNC Client for #{os}</a>"
+  filename = File.basename(remote_source['url'])
+  cache_file = File.join(Chef::Config[:file_cache_path], filename)
+  target_file = File.join(node['fileserver']['docroot'], filename)
+  
+  # Populate the cache
+  # may already be cached to to ii-fileserver::cache-files
+  Chef::Log.fatal remote_source
+  rm = remote_file cache_file do
+    source remote_source['url']
+    checksum remote_source['checksum']
+  end
+  rm.run_action :create
 
-remote_file File.join(node['fileserver']['docroot'], "cotvnc.dmg") do
-  source "http://hivelocity.dl.sourceforge.net/project/chicken/Chicken-2.2b2.dmg"
-  checksum "20e910b6cbf95c3e5dcf6fe8e120d5a0911f19099128981fb95119cee8d5fc6b"
-  owner node['apache']['user']
-  mode 00644
-end
-
-index_data << "<br /><a href=\"tightvnc.msi\">VNC Client for Windows</a>"
-
-remote_file File.join(node['fileserver']['docroot'], "tightvnc.msi") do
-  source "http://www.tightvnc.com/download/2.5.2/tightvnc-2.5.2-setup-32bit.msi"
-  checksum "622109d0414a63db49a9e293d2ef272b0adab14fa46852cb9189568746b306bb"
-  owner node['apache']['user']
-  mode 00644
+  file target_file do
+    content open(cache_file).read
+    owner node['apache']['user']
+    mode 00644
+    not_if {::File.exists? target_file }
+  end
 end
 
 # link "chef-full.deb" do

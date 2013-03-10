@@ -23,7 +23,8 @@ index_data = []
 node.set['apache']['listen_ports'] = [80]
 
 include_recipe "apache2"
-
+# set attributes for and cache data_bag based ingredients
+include_recipe 'ii-fileserver::ingredients'
 directory node['fileserver']['docroot'] do
   owner node['apache']['user']
   mode 00755
@@ -69,53 +70,41 @@ template File.join(node['fileserver']['docroot'], "index.html") do
     })
 end
 
-node['fileserver']['sublime'].each do |os, data|
 
-  index_data << "<br /><a href=\"#{data['filename']}\">Sublime for #{os.capitalize}</a>"
+node['fileserver']['ingredients'].each do |data_bag,attrs|
+  search(data_bag,"version:#{node['fileserver']['ingredients'][data_bag]['version']}").each do |ing|
+    # cache file should already be created
+    cache_file = File.join(Chef::Config[:file_cache_path], ing['filename'])
+    target_file = File.join(node['fileserver']['docroot'], ing['filename'])
 
-  cache_file = File.join(Chef::Config[:file_cache_path], data['filename'])
-  target_file = File.join(node['fileserver']['docroot'], data['filename'])
-  # Populate the cache
-  rm = remote_file cache_file do
-    source data['url']
-    checksum data['checksum']
+    archs = case ing['arch']
+            when Array
+              ''
+            when /x86_64/
+              ''
+            else
+              ing['arch']
+            end
+    ostext = ing['os'].map do |os,versions|
+      if versions and ing['flavor']
+        "#{os} #{ing['flavor']} #{versions.join(', ')}"
+      elsif versions
+        "#{os} #{versions.join(', ')}"
+      else
+        ''
+      end
+    end.join('; ')
+    ostext = ostext.empty? ? '' : "for #{archs} #{ostext} "
+    index_data << "<br /><a href=\"#{ing['filename']}\">#{ing['desc']} #{node['fileserver']['ingredients'][data_bag]['version']} #{ostext}</a>"
+    # 'copy' file out of cache
+    file target_file do
+      content open(cache_file).read
+      owner node['apache']['user']
+      mode 00644
+      not_if {::File.exists? target_file }
+    end
   end
-  rm.run_action :create
 
-  file target_file do
-    content open(cache_file).read
-    owner node['apache']['user']
-    mode 00644
-    not_if {::File.exists? target_file }
-  end
-
-end
-
-cc = search('chef',"*:*")
-node.normal['chef_client']['version']=cc.map{|v| v['version']}.flatten.uniq.sort.last
-
-search('chef',"version:#{node['chef_client']['version']}").each do |c|
-  oses = c['os'].map do |os,versions|
-    "#{os} #{versions.join(', ')}"
-  end.join('; ')
-  index_data << "<br /><a href=\"#{c['filename']}\">Chef Full Stack for #{oses}</a>"
-
-  cache_file = File.join(Chef::Config[:file_cache_path], c['filename'])
-  target_file = File.join(node['fileserver']['docroot'], c['filename'])
-  # Populate the cache
-  # may already be cached to to ii-fileserver::cache-files
-  rm = remote_file cache_file do
-    source c['source']
-    checksum c['checksum']
-  end
-  rm.run_action :create
-
-  file target_file do
-    content open(cache_file).read
-    owner node['apache']['user']
-    mode 00644
-    not_if {::File.exists? target_file }
-  end
 end
 
 node['fileserver']['vnc'].each do |os,remote_source|

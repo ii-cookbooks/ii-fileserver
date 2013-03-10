@@ -10,32 +10,22 @@ default['fileserver']["vnc"] = {
     'url' => 'http://www.tightvnc.com/download/2.5.2/tightvnc-2.5.2-setup-32bit.msi'
   }
 }
-default['fileserver']["sublime"] = {
-  'osx' => {
-    'filename' => "Sublime\ Text\ 2.0.1.dmg",
-    'checksum' => "2fd9e50f1dd43813c9aaa1089f50690f3fe733bc5069339db01ebcaf18c6b736",
-    'url' => "http://c758482.r82.cf2.rackcdn.com/Sublime%20Text%202.0.1.dmg"
-  },
-  'win32' => {
-    'filename' => "Sublime\ Text\ 2.0.1\ Setup.exe",
-    'checksum' => "6437659c4f3a533e87b2e29e75c22c4e223932e2b73145d1c493dbd32f2bdb72",
-    'url' => "http://c758482.r82.cf2.rackcdn.com/Sublime%20Text%202.0.1%20Setup.exe"
-  },
-  'win64' => {
-    'filename' => "Sublime\ Text\ 2.0.1\ x64\ Setup.exe",
-    'checksum' => "2120732bcc511baa2737ff157c063129e7525642e3893fc3dc01041a3b8f9a4e",
-    'url' => "http://c758482.r82.cf2.rackcdn.com/Sublime%20Text%202.0.1%20x64%20Setup.exe"
-  },
-  'linux32' => {
-    'filename' => "Sublime\ Text\ 2.0.1.tar.bz2",
-    'checksum' => "4e752da357fbaf41b74e45e2caaea5c07813216c273b6f8770abd5621daddbf4",
-    'url' => "http://c758482.r82.cf2.rackcdn.com/Sublime%20Text%202.0.1.tar.bz2"
-  },
-  'linux64' => {
-    'filename' => "Sublime\ Text\ 2.0.1\ x64.tar.bz2",
-    'checksum' => "858df93325334b7c7ed75daac26c45107e0c7cd194d522b42a6ac69fae6de404",
-    'url' => "http://c758482.r82.cf2.rackcdn.com/Sublime%20Text%202.0.1%20x64.tar.bz2"
-  }
-}
+default['fileserver']['ingredients']['ubuntu']['desc']='Ubuntu ISO'
+default['fileserver']['ingredients']['windows']['desc']='Windows ISO'
+default['fileserver']['ingredients']['virtualbox']['desc']='Virtualbox'
+default['fileserver']['ingredients']['chef']['desc']='Chef Client'
+default['fileserver']['ingredients']['chef_server']['desc']='Chef Server'
+default['fileserver']['ingredients']['vagrant']['desc']='Vagrant'
+default['fileserver']['ingredients']['emacs']['desc']='Emacs'
+default['fileserver']['ingredients']['vim']['desc']='Vim'
+default['fileserver']['ingredients']['sublimetext']['desc']='Sublime Text'
+default['fileserver']['ingredients']['git']['desc']='Git'
 
-  
+# mac versions of git are usually newer, pin at most recent release of both
+default['fileserver']['ingredients']['git']['version']='1.8.1.2'
+# I'm not ready for newer versions of Ubuntu... yet
+default['fileserver']['ingredients']['ubuntu']['version']='12.04.2'
+# If I want to list multiple version of windows, this could get interesting
+# Let's focus on 2008r2 for now
+default['fileserver']['ingredients']['windows']['version']='7601'
+

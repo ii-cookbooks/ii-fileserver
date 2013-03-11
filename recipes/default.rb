@@ -97,11 +97,24 @@ node['fileserver']['ingredients'].each do |data_bag,attrs|
     ostext = ostext.empty? ? '' : "for #{archs} #{ostext} "
     index_data << "<br /><a href=\"#{ing['filename']}\">#{ing['desc']} #{node['fileserver']['ingredients'][data_bag]['version']} #{ostext}</a>"
     # 'copy' file out of cache
+    ruby_block "copy file #{cache_file} to #{target_file}" do
+      block do
+        ::FileUtils.cp cache_file, target_file
+      end
+      if ::File.exist?(target_file)
+        not_if do
+          #::FileUtils.compare_file(cache_file, target_file)
+          # cheap checking, should maybe look at time as well
+          File.size(cache_file) == File.size(target_file)
+        end
+      end
+    end
+    # make sure perms are good
     file target_file do
-      content open(cache_file).read
       owner node['apache']['user']
       mode 00644
-      not_if {::File.exists? target_file }
+      #content open(cache_file).read
+      #not_if {::File.exists? target_file }
     end
   end
 

@@ -96,25 +96,37 @@ node['fileserver']['ingredients'].each do |data_bag,attrs|
     end.join('; ')
     ostext = ostext.empty? ? '' : "for #{archs} #{ostext} "
     index_data << "<br /><a href=\"#{ing['filename']}\">#{ing['desc']} #{node['fileserver']['ingredients'][data_bag]['version']} #{ostext}</a>"
+    # going to try symlinks vs file copies
+    # we may run into issues later with file perms to reach the cache, but let's deal with it later
     # 'copy' file out of cache
-    ruby_block "copy file #{cache_file} to #{target_file}" do
-      block do
-        ::FileUtils.cp cache_file, target_file
-      end
-      if ::File.exist?(target_file)
-        not_if do
-          #::FileUtils.compare_file(cache_file, target_file)
-          # cheap checking, should maybe look at time as well
-          File.size(cache_file) == File.size(target_file)
-        end
-      end
-    end
+    # ruby_block "copy file #{cache_file} to #{target_file}" do
+    #   block do
+    #     ::FileUtils.cp cache_file, target_file
+    #   end
+    #   if ::File.exist?(target_file)
+    #     not_if do
+    #       #::FileUtils.compare_file(cache_file, target_file)
+    #       # cheap checking, should maybe look at time as well
+    #       File.size(cache_file) == File.size(target_file)
+    #     end
+    #   end
+    # end
     # make sure perms are good
-    file target_file do
+    # file target_file do
+    #   owner node['apache']['user']
+    #   mode 00644
+    #   #content open(cache_file).read
+    #   #not_if {::File.exists? target_file }
+    # end
+    link target_file do
+      to cache_file
       owner node['apache']['user']
-      mode 00644
-      #content open(cache_file).read
-      #not_if {::File.exists? target_file }
+    end
+    if data_bag == 'chef' && ostext =~ /windows/
+      link File.join(node['fileserver']['docroot'], 'chef-client.msi') do
+        to cache_file
+        owner node['apache']['user']
+      end
     end
   end
 
